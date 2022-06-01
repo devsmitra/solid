@@ -164,7 +164,6 @@ export function createSignal<T>(): Signal<T | undefined>;
 export function createSignal<T>(value: T, options?: SignalOptions<T>): Signal<T>;
 export function createSignal<T>(value?: T, options?: SignalOptions<T>): Signal<T | undefined> {
   options = options ? Object.assign({}, signalOptions, options) : signalOptions;
-
   const s: SignalState<T> = {
     value,
     observers: null,

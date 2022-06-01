@@ -140,7 +140,8 @@
     "bench": "node --allow-natives-syntax bench/bench.cjs",
     "test": "jest && npm run test:types",
     "test:coverage": "jest --coverage && npm run test:types",
-    "test:types": "tsc --project tsconfig.test.json"
+    "test:types": "tsc --project tsconfig.test.json",
+    "dev": "npx rollup -cw"
   },
   "keywords": [
     "solid",
