@@ -106,10 +106,19 @@ export type RootFunction<T> = (dispose: () => void) => T;
 export function createRoot<T>(fn: RootFunction<T>, detachedOwner?: Owner): T {
   const listener = Listener,
     owner = Owner,
+    unowned = fn.length === 0,
     root: Owner =
-      fn.length === 0 && !"_SOLID_DEV_"
+      unowned && !"_SOLID_DEV_"
         ? UNOWNED
-        : { owned: null, cleanups: null, context: null, owner: detachedOwner || owner };
+        : { owned: null, cleanups: null, context: null, owner: detachedOwner || owner },
+    updateFn = unowned
+      ? "_SOLID_DEV_"
+        ? () =>
+            fn(() => {
+              throw new Error("Dispose method must be an explicit argument to createRoot function");
+            })
+        : fn
+      : () => fn(() => cleanNode(root));
 
   if ("_SOLID_DEV_" && owner) root.name = `${(owner as Computation<any>).name}-r${rootCount++}`;
 
@@ -117,7 +126,7 @@ export function createRoot<T>(fn: RootFunction<T>, detachedOwner?: Owner): T {
   Listener = null;
 
   try {
-    return runUpdates(() => fn(() => cleanNode(root)), true)!;
+    return runUpdates(updateFn as () => T, true)!;
   } finally {
     Listener = listener;
     Owner = owner;
@@ -1576,6 +1585,7 @@ function cleanNode(node: Owner) {
   if (Transition && Transition.running) (node as Computation<any>).tState = 0;
   else (node as Computation<any>).state = 0;
   node.context = null;
+  "_SOLID_DEV_" && delete node.sourceMap;
 }
 
 function reset(node: Computation<any>, top?: boolean) {
